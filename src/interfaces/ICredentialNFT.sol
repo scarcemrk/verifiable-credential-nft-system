@@ -19,10 +19,7 @@ interface ICredentialNFT {
     /// @param tokenId Unique identifier assigned to the credential.
     /// @param credentialHash Hash of the off-chain credential document.
     event CredentialIssued(
-        address indexed issuer,
-        address indexed recipient,
-        uint256 indexed tokenId,
-        bytes32 credentialHash
+        address indexed issuer, address indexed recipient, uint256 indexed tokenId, bytes32 credentialHash
     );
 
     /// @notice Emitted when a credential is revoked.
@@ -42,11 +39,8 @@ interface ICredentialNFT {
     /// - The credential cannot be transferred after minting.
     /// @param recipient Address that will receive the credential.
     /// @param credentialHash Hash of the off-chain credential document.
-    /// @return The unique identifier assigned to the newly minted credential.
-    function mintCredential(
-        address recipient,
-        bytes32 credentialHash
-    ) external returns (uint256 tokenId);
+    /// @return tokenId The unique identifier assigned to the newly minted credential.
+    function mintCredential(address recipient, bytes32 credentialHash) external returns (uint256 tokenId);
 
     /// @notice Revokes an existing credential.
     /// @dev
