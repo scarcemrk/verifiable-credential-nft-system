@@ -14,8 +14,8 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 contract IssuerRegistry is Initializable, UUPSUpgradeable, IssuerRegistryStorage, IIssuerRegistry {
     /// @notice Restricts function calls to the protocol administrator
     /// @dev Reverts if the caller is not the protocol admin
-    modifier onlyAdmin() {
-        require(msg.sender == _protocolAdmin, "Not admin");
+    modifier onlyProtocolAdmin() {
+        require(msg.sender == _protocolAdmin, "Not protocol admin");
         _;
     }
 
@@ -39,7 +39,7 @@ contract IssuerRegistry is Initializable, UUPSUpgradeable, IssuerRegistryStorage
     /// @custom:reverts "Invalid issuer address" if _issuer is the zero address
     /// @custom:reverts "Issuer already authorized" if _issuer is already registered
     /// @custom:emits IssuerAdded when the issuer is successfully added
-    function addIssuer(address _issuer) external override onlyAdmin {
+    function addIssuer(address _issuer) external override onlyProtocolAdmin {
         require(_issuer != address(0), "Invalid issuer address");
         require(!_authorizedIssuer[_issuer], "Issuer already authorized");
         _authorizedIssuer[_issuer] = true;
@@ -51,7 +51,7 @@ contract IssuerRegistry is Initializable, UUPSUpgradeable, IssuerRegistryStorage
     /// @param _issuer The address of the issuer to be removed from the authorized registry
     /// @custom:reverts "Issuer not authorized" if _issuer is not in the authorized registry
     /// @custom:emits IssuerRemoved when the issuer is successfully removed
-    function removeIssuer(address _issuer) external override onlyAdmin {
+    function removeIssuer(address _issuer) external override onlyProtocolAdmin {
         require(_authorizedIssuer[_issuer], "Issuer not authorized");
         _authorizedIssuer[_issuer] = false;
         emit IssuerRemoved(_issuer);
@@ -68,6 +68,6 @@ contract IssuerRegistry is Initializable, UUPSUpgradeable, IssuerRegistryStorage
     /// @notice Authorizes an upgrade to a new implementation contract
     /// @dev Internal function called by the UUPS proxy pattern during upgrades
     /// @param newImplementation The address of the new implementation contract to upgrade to
-    /// @custom:restricted Only callable by the protocol admin (via onlyAdmin modifier)
-    function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
+    /// @custom:restricted Only callable by the protocol admin (via onlyProtocolAdmin modifier)
+    function _authorizeUpgrade(address newImplementation) internal override onlyProtocolAdmin {}
 }
