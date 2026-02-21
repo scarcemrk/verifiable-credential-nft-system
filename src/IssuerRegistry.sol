@@ -4,7 +4,6 @@ pragma solidity 0.8.34;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IIssuerRegistry} from "./interfaces/IIssuerRegistry.sol";
-// import {IErrors} from "./interfaces/IErrors.sol";
 import {Errors} from "./errors/Errors.sol";
 import {IssuerRegistryStorage} from "./storage/IssuerRegistryStorage.sol";
 
