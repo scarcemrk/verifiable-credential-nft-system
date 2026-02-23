@@ -16,7 +16,9 @@ contract IssuerRegistry is Initializable, UUPSUpgradeable, IssuerRegistryStorage
     /// @notice Restricts function calls to the protocol administrator
     /// @dev Reverts if the caller is not the protocol admin
     modifier onlyProtocolAdmin() {
-        require(msg.sender == _protocolAdmin, Errors.NotProtocolAdmin());
+        if (msg.sender != _protocolAdmin) {
+            revert Errors.NotProtocolAdmin();
+        }
         _;
     }
 
@@ -30,7 +32,9 @@ contract IssuerRegistry is Initializable, UUPSUpgradeable, IssuerRegistryStorage
     /// @dev Can only be called once due to the initializer modifier
     /// @param admin_ The address of the protocol administrator
     function initialize(address admin_) external initializer {
-        require(admin_ != address(0), Errors.InvalidAddress());
+        if (admin_ == address(0)) {
+            revert Errors.InvalidAddress();
+        }
         _protocolAdmin = admin_;
     }
 
@@ -38,8 +42,12 @@ contract IssuerRegistry is Initializable, UUPSUpgradeable, IssuerRegistryStorage
     /// @dev Only callable by the protocol admin. Prevents duplicate issuer registrations.
     /// @param _issuer The address of the issuer to be added to the authorized registry
     function addIssuer(address _issuer) external override onlyProtocolAdmin {
-        require(_issuer != address(0), Errors.InvalidAddress());
-        require(!_authorizedIssuer[_issuer], Errors.IssuerAlreadyExists());
+        if (_issuer == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        if (_authorizedIssuer[_issuer]) {
+            revert Errors.IssuerAlreadyExists();
+        }
         _authorizedIssuer[_issuer] = true;
         emit IssuerAdded(_issuer);
     }
@@ -48,7 +56,9 @@ contract IssuerRegistry is Initializable, UUPSUpgradeable, IssuerRegistryStorage
     /// @dev Only callable by the protocol admin. Reverts if the issuer is not currently authorized.
     /// @param _issuer The address of the issuer to be removed from the authorized registry
     function removeIssuer(address _issuer) external override onlyProtocolAdmin {
-        require(_authorizedIssuer[_issuer], Errors.NotAuthorizedIssuer());
+        if (!_authorizedIssuer[_issuer]) {
+            revert Errors.NotAuthorizedIssuer();
+        }
         _authorizedIssuer[_issuer] = false;
         emit IssuerRemoved(_issuer);
     }

@@ -18,13 +18,16 @@ contract CredentialNFT is Initializable, ERC721Upgradeable, UUPSUpgradeable, Cre
     /// @notice Restricts access to protocol admin only
     /// @dev Reverts if caller is not the protocol admin
     modifier onlyProtocolAdmin() {
-        require(msg.sender == _protocolAdmin, Errors.NotProtocolAdmin());
+        if (msg.sender != _protocolAdmin) {
+            revert Errors.NotProtocolAdmin();
+        }
         _;
     }
 
     modifier onlyIssuer() {
-        require(IIssuerRegistry(_issuerRegistry).isAuthorizedIssuer(msg.sender), Errors.NotAuthorizedIssuer());
-
+        if (!IIssuerRegistry(_issuerRegistry).isAuthorizedIssuer(msg.sender)) {
+            revert Errors.NotAuthorizedIssuer();
+        }
         _;
     }
 
@@ -44,8 +47,12 @@ contract CredentialNFT is Initializable, ERC721Upgradeable, UUPSUpgradeable, Cre
         external
         initializer
     {
-        require(issuerRegistry_ != address(0), Errors.InvalidIssuerRegistryAddress());
-        require(admin_ != address(0), Errors.InvalidAddress());
+        if (issuerRegistry_ == address(0)) {
+            revert Errors.InvalidIssuerRegistryAddress();
+        }
+        if (admin_ == address(0)) {
+            revert Errors.InvalidAddress();
+        }
         __ERC721_init(name_, symbol_);
         _issuerRegistry = issuerRegistry_;
         _protocolAdmin = admin_;
@@ -53,6 +60,7 @@ contract CredentialNFT is Initializable, ERC721Upgradeable, UUPSUpgradeable, Cre
 
     /// @notice Mints a new credential NFT to a recipient
     /// @dev Only authorized issuers can mint credentials
+    /// @dev Validates that the recipient address is not zero address and that the credential hash is not empty.
     /// @param _recipient The address of the recipient of the credential NFT
     /// @param _credentialhash The hash of the credential data
     /// @return tokenId The token ID of the newly minted credential NFT
@@ -62,8 +70,12 @@ contract CredentialNFT is Initializable, ERC721Upgradeable, UUPSUpgradeable, Cre
         onlyIssuer
         returns (uint256 tokenId)
     {
-        require(_credentialhash != bytes32(0), Errors.InvalidCredentialHash());
-        require(_recipient != address(0), Errors.InvalidAddress());
+        if (_credentialhash == bytes32(0)) {
+            revert Errors.InvalidCredentialHash();
+        }
+        if (_recipient == address(0)) {
+            revert Errors.InvalidAddress();
+        }
         _tokenIdCounter++;
         tokenId = _tokenIdCounter;
         _mint(_recipient, tokenId);
@@ -79,11 +91,32 @@ contract CredentialNFT is Initializable, ERC721Upgradeable, UUPSUpgradeable, Cre
     /// @param _tokenId The token ID of the credential to revoke
     /// @param _reason The reason for revoking the credential
     function revokeCredential(uint256 _tokenId, string calldata _reason) external override {
-        require(_ownerOf(_tokenId) != address(0), Errors.CredentialDoesNotExist());
-        require(_revoked[_tokenId] == false, Errors.CredentialAlreadyRevoked());
-        require(_credentialIssuer[_tokenId] == msg.sender, Errors.OnlyIssuerCanRevoke());
+        if (_ownerOf(_tokenId) == address(0)) {
+            revert Errors.CredentialDoesNotExist();
+        }
+        if (_revoked[_tokenId]) {
+            revert Errors.CredentialAlreadyRevoked();
+        }
+        if (_credentialIssuer[_tokenId] != msg.sender) {
+            revert Errors.OnlyIssuerCanRevoke();
+        }
         _revoked[_tokenId] = true;
         emit CredentialRevoked(_tokenId, _reason);
+    }
+
+    /// @notice Emergency revokes an existing credential
+    /// @dev Only the protocol admin can emergency revoke
+    /// @param _tokenId The token ID of the credential to emergency revoke
+    /// @param _reason The reason for emergency revoking the credential
+    function emergencyRevoke(uint256 _tokenId, string calldata _reason) external override onlyProtocolAdmin {
+        if (_ownerOf(_tokenId) == address(0)) {
+            revert Errors.CredentialDoesNotExist();
+        }
+        if (_revoked[_tokenId]) {
+            revert Errors.CredentialAlreadyRevoked();
+        }
+        _revoked[_tokenId] = true;
+        emit CredentialEmergencyRevoked(_tokenId, _reason);
     }
 
     /// @notice Checks if a credential is valid
@@ -125,7 +158,9 @@ contract CredentialNFT is Initializable, ERC721Upgradeable, UUPSUpgradeable, Cre
     function _update(address _to, uint256 _tokenId, address _auth) internal override returns (address) {
         address from = _ownerOf(_tokenId);
 
-        require(from == address(0), Errors.CredentialIsNotTransferable());
+        if (from != address(0)) {
+            revert Errors.CredentialIsNotTransferable();
+        }
         return super._update(_to, _tokenId, _auth);
     }
 }

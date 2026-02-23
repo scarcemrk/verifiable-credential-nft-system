@@ -31,6 +31,15 @@ interface ICredentialNFT {
     /// @param reason Human-readable explanation for revocation.
     event CredentialRevoked(uint256 indexed tokenId, string reason);
 
+    /// @notice Emitted when a credential is emergency revoked.
+    /// @dev
+    /// - Emergency revocation is final and cannot be undone.
+    /// - Emergency revocation does not burn the token.
+    /// - The issuer is responsible for providing a reason.
+    /// @param tokenId Unique identifier of the credential.
+    /// @param reason Human-readable explanation for emergency revocation.
+    event CredentialEmergencyRevoked(uint256 indexed tokenId, string reason);
+
     /// @notice Issues a new credential to a recipient.
     /// @dev
     /// - Must only be callable by an authorized issuer.
@@ -50,6 +59,15 @@ interface ICredentialNFT {
     /// @param tokenId Unique identifier of the credential.
     /// @param reason Human-readable explanation for revocation.
     function revokeCredential(uint256 tokenId, string calldata reason) external;
+
+    /// @notice Emergency revokes an existing credential.
+    /// @dev
+    /// - Only the protocol admin may emergency revoke.
+    /// - Emergency revocation is irreversible.
+    /// - Does not affect token ownership.
+    /// @param tokenId Unique identifier of the credential.
+    /// @param reason Human-readable explanation for emergency revocation.
+    function emergencyRevoke(uint256 tokenId, string calldata reason) external;
 
     /// @notice Returns whether a credential is currently valid.
     /// @dev
