@@ -4,7 +4,9 @@ permissions: {}
 
 on:
   push:
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 env:
@@ -16,8 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
           submodules: recursive
@@ -36,3 +40,16 @@ jobs:
 
       - name: Run Forge tests
         run: forge test -vvv
+
+      - name: Run Forge coverage
+        run: forge coverage --report summary
+
+      - name: Enforce minimum coverage (90%)
+        run: |
+          forge coverage --report summary | tee coverage.txt
+          COVERAGE=$(grep -oP '\d+(?=%)' coverage.txt | head -1)
+          echo "Coverage: $COVERAGE%"
+          if [ "$COVERAGE" -lt 90 ]; then
+            echo "Coverage below 90% threshold"
+            exit 1
+          fi

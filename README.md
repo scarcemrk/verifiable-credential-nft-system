@@ -1,4 +1,7 @@
 # Verifiable Credential NFT Protocol (Security-First Reference Implementation)
+![CI](https://github.com/scarcemrk/verifiable-credential-nft-system/actions/workflows/test.yml/badge.svg?branch=master)
+![Coverage](https://img.shields.io/badge/Test%20Coverage-97.03%25-brightgreen)
+![Solidity](https://img.shields.io/badge/Solidity-0.8.34-blue)
 
 ## Overview
 
